@@ -22,8 +22,12 @@ namespace ConsolCourse
                         uint sentenseWeight = 0;
                         ulong sentenseStart = 0;
                         bool border = false;
+                        bool openBracket = false;
+                        bool closeBracket = false;
+                        bool dash = false;
                         List<ulong> buf = new List<ulong>();
-                        ulong sbuf = 0 ;
+                        ulong sbuf = 0;
+                        ulong bbuf = 0;
                         WordModel.startRead();
                         WordModel currentWord = inputStream.EndOfStream ? null : WordModel.getWord(inputStream);
                         while (!inputStream.EndOfStream)
@@ -33,39 +37,64 @@ namespace ConsolCourse
                                 buf.Add(WordModel.Line);
                                 while ((currentWord.part == PartsOfLanguage.G2 || currentWord.part == PartsOfLanguage.CONJS || currentWord.part == PartsOfLanguage.SPACE || currentWord.part == PartsOfLanguage.R1) && !inputStream.EndOfStream)
                                 {
+                                    if(currentWord.token == "(" || currentWord.token == "«") { openBracket = true; }
                                     currentWord = WordModel.getWord(inputStream);
                                 }
                             }
                             else if (currentWord.part == PartsOfLanguage.G1)
                             {
+                                if (openBracket) { bbuf = WordModel.Line; }
                                 while ((currentWord.part == PartsOfLanguage.G1 || currentWord.part == PartsOfLanguage.SPACE)&& !inputStream.EndOfStream)
                                 {
+                                    if (currentWord.token == ")" || currentWord.token == "»") { closeBracket = openBracket; }
                                     currentWord = WordModel.getWord(inputStream);
                                 }
-                                if (currentWord.part == PartsOfLanguage.G2) { sbuf = WordModel.Line; }
-                                else { sbuf = 0; }
-                                while ((currentWord.part == PartsOfLanguage.G2 || currentWord.part == PartsOfLanguage.SPACE) && !inputStream.EndOfStream)
+                                if (openBracket && !closeBracket)
                                 {
-                                    currentWord = WordModel.getWord(inputStream);
-                                }
-                                if (currentWord.part == PartsOfLanguage.R1 || isEnd(sentenseLength, sentenseWeight) || border)
-                                {
-                                    outputStream.Write(sentenseStart);
-                                    outputStream.Write(true);
-                                    foreach (ulong b in buf)
+                                    buf.Add(bbuf);
+                                    while ((currentWord.part == PartsOfLanguage.G2 || currentWord.part == PartsOfLanguage.CONJS || currentWord.part == PartsOfLanguage.SPACE || currentWord.part == PartsOfLanguage.R1) && !inputStream.EndOfStream)
                                     {
-                                        outputStream.Write(b);
-                                        outputStream.Write(false);
+                                        currentWord = WordModel.getWord(inputStream);
                                     }
-                                    buf.Clear();
-                                    sentenseLength = 0;
-                                    sentenseWeight = 0;
-                                    if (sbuf != 0) { sentenseStart = sbuf; }
-                                    else { sentenseStart = WordModel.Line; }
                                 }
-                                if (sbuf != 0) { buf.Add(sbuf); }
-                                if (currentWord.part == PartsOfLanguage.R1) { border = false; }
-                                else { border = true; }
+                                else
+                                {
+                                    if (currentWord.part == PartsOfLanguage.G2) { sbuf = WordModel.Line; }
+                                    else { sbuf = 0; }
+                                    while ((currentWord.part == PartsOfLanguage.G2 || currentWord.part == PartsOfLanguage.SPACE) && !inputStream.EndOfStream)
+                                    {
+                                        if (currentWord.token == "—" || currentWord.token == "-"){ dash = true; }
+                                        currentWord = WordModel.getWord(inputStream);
+                                    }
+                                    if (dash && openBracket && closeBracket)
+                                    {
+                                        dash = openBracket = closeBracket = false;
+                                        buf.Add(bbuf);
+                                        while ((currentWord.part == PartsOfLanguage.G2 || currentWord.part == PartsOfLanguage.CONJS || currentWord.part == PartsOfLanguage.SPACE || currentWord.part == PartsOfLanguage.R1) && !inputStream.EndOfStream)
+                                        {
+                                            if (currentWord.token == "(" || currentWord.token == "«") { openBracket = true; }
+                                            currentWord = WordModel.getWord(inputStream);
+                                        }
+                                    }
+                                    else if (currentWord.part == PartsOfLanguage.R1 || isEnd(sentenseLength, sentenseWeight) || border)
+                                    {
+                                        outputStream.Write(sentenseStart);
+                                        outputStream.Write(true);
+                                        foreach (ulong b in buf)
+                                        {
+                                            outputStream.Write(b);
+                                            outputStream.Write(false);
+                                        }
+                                        buf.Clear();
+                                        sentenseLength = 0;
+                                        sentenseWeight = 0;
+                                        if (sbuf != 0) { sentenseStart = sbuf; }
+                                        else { sentenseStart = WordModel.Line; }
+                                    }
+                                    if (sbuf != 0) { buf.Add(sbuf); }
+                                    if (currentWord.part == PartsOfLanguage.R1) { border = false; }
+                                    else { border = true; }
+                                }
                             }
                             else if (currentWord.part != PartsOfLanguage.SPACE && currentWord.part != PartsOfLanguage.R1)
                             {
@@ -96,6 +125,13 @@ namespace ConsolCourse
             }
         }
 
+
+
+
+
+
+
+
         private static bool isEnd(uint length, uint weight)
         {
             return (float)weight / (float)length > border;
@@ -115,6 +151,7 @@ namespace ConsolCourse
                         WordModel.startRead();
                         WordModel currentWord;
                         Fragment currentFragment;
+                        int currentNumber = 0;
                         List<WordModel> segment = new List<WordModel>();
                         List<Fragment> sentense = new List<Fragment>();
                         ulong line = binputStream.ReadUInt64();
@@ -129,13 +166,12 @@ namespace ConsolCourse
                                 currentWord = WordModel.getWord(inputStream);
                                 segment.Add(currentWord);
                             }
-                            currentFragment = new Fragment(segment);
+                            currentFragment = new Fragment(segment, currentNumber++);
                             sentense.Add(currentFragment);
                             if (isSentenseStart || binputStream.BaseStream.Position == binputStream.BaseStream.Length)
-                            { 
-
+                            {
+                                currentNumber = 0;
                             }
-
                             
                         }
 
@@ -163,19 +199,14 @@ namespace ConsolCourse
             while (wasUpdate)
             {
                 wasUpdate = false;
-                for (int i = 0; i < sentense.Count - 1; ++i)
+                for (int i = 1; i < sentense.Count - 1; ++i)
                 {
-                    if ((bufFragment = Fragment.Conection(sentense[i], sentense[i + 1]) )!= null)
+                    if ((bufFragment = Fragment.useKey(sentense[i - 1], sentense[i], sentense[i + 1]) )!= null)
                     {
                         buf.Add(bufFragment);
                         wasUpdate = true;
                     }
-                    else if ((bufFragment = Fragment.Obey(sentense[i], sentense[i + 1])) != null)
-                    {
-                        buf.Add(bufFragment);
-                        wasUpdate = true;
-                    }
-                    else if ((bufFragment = Fragment.Complication(sentense[i], sentense[i + 1])) != null)
+                    else if ((bufFragment = Fragment.useMorf(sentense[i - 1], sentense[i], sentense[i + 1])) != null)
                     {
                         buf.Add(bufFragment);
                         wasUpdate = true;

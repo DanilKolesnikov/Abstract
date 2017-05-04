@@ -8,6 +8,7 @@ namespace ConsolCourse
 {
     class Fragment
     {
+        private int numberInSentense;
         private List<WordModel> words;
         private uint leftWord;
         private uint rightWord;
@@ -20,15 +21,17 @@ namespace ConsolCourse
         private bool importantNeighbor;
         private Fragment obey;
 
-        public Fragment(List<WordModel> words)
+        public Fragment(List<WordModel> words, int number)
         {
+            this.numberInSentense = number;
             this.words = new List<WordModel>();
             leftBorders = new List<string>();
             rightBorders = new List<string>();
             conj = new List<WordModel>();
             haveWord = false;
             PartsOfLanguage maxPart = PartsOfLanguage.NON;
-            int border = -1;
+            int rBorder = -1;
+            int lBorder = words.Count;
             for (int i = words.Count - 1; i <= 0; --i)
             {
                 if (words[i].part == PartsOfLanguage.R1 || words[i].part == PartsOfLanguage.G1 || words[i].part == PartsOfLanguage.SPACE)
@@ -37,12 +40,12 @@ namespace ConsolCourse
                 }
                 else
                 {
-                    border = i;
+                    rBorder = i;
                     break;
                 }
             }
             rightBorders.Reverse();
-            for (int i = 0; i <= border; ++i)
+            for (int i = 0; i <= rBorder; ++i)
             {
                 if (words[i].part == PartsOfLanguage.R1 || words[i].part == PartsOfLanguage.G2 || words[i].part == PartsOfLanguage.SPACE)
                 {
@@ -50,27 +53,33 @@ namespace ConsolCourse
                 }
                 else
                 {
-                    if (maxPart < words[i].part) { maxPart = words[i].part; }
-                    if (words[i].important)
-                    {
-                        if (!haveWord)
-                        {
-                            rightWord = leftWord = words[i].wordNumber;
-                            haveWord = true;
-                        }
-                        else
-                        {
-                            rightWord = words[i].wordNumber;
-                        }
-                    }
-                    if (words[i].part == PartsOfLanguage.CONJP || words[i].part == PartsOfLanguage.CONJS)
-                    {
-                        conj.Add(words[i]);
-                    }
-                    if (words[i].word != String.Empty) { this.words.Add(words[i]); }
+                    lBorder = i;
+                    break;
                 }
-                type = convertToFragmrntType(maxPart);
             }
+            for (int i = lBorder; i <= rBorder; ++i)
+            {
+                
+                if (maxPart < words[i].part) { maxPart = words[i].part; }
+                if (words[i].important)
+                {
+                    if (!haveWord)
+                    {
+                        rightWord = leftWord = words[i].wordNumber;
+                        haveWord = true;
+                    }
+                    else
+                    {
+                        rightWord = words[i].wordNumber;
+                    }
+                }
+                if (words[i].part == PartsOfLanguage.CONJP || words[i].part == PartsOfLanguage.CONJS)
+                {
+                    conj.Add(words[i]);
+                }
+                if (words[i].word != String.Empty) { this.words.Add(words[i]); }
+            }
+            type = convertToFragmrntType(maxPart);
         }
 
         private static FragmentType convertToFragmrntType(PartsOfLanguage part)
@@ -85,39 +94,44 @@ namespace ConsolCourse
                 case PartsOfLanguage.GER: return FragmentType.G;
                 case PartsOfLanguage.INF: return FragmentType.BA;
                 case PartsOfLanguage.PARENTH: return FragmentType.IN;
-                default:  return FragmentType.NON;
+                case PartsOfLanguage.S: return FragmentType.S;
+                case PartsOfLanguage.SPRO: return FragmentType.S;
+                case PartsOfLanguage.A: return FragmentType.A;
+                default: return FragmentType.NON;
             }
         }
 
-        public static Fragment Conection(Fragment a, Fragment b)
+        public static Fragment useKey(Fragment l, Fragment r, Fragment c)
         {
             
         }
 
-        public static Fragment Obey(Fragment a, Fragment b)
-        {
-            
-        }
-
-        public static Fragment Complication(Fragment a, Fragment b)
+        public static Fragment useMorf(Fragment l, Fragment r, Fragment c)
         {
             Fragment ans = null;
-            if ((ans = Insert(a, b)) != null) { return ans; }
-            else { return Concat(a, b); }
+            if ((ans = Insert(l, c, r)) != null) { return ans; }
+            else { return Concat(l, c , r); }
+        }
+        
+        private static Fragment Insert(Fragment l, Fragment r, Fragment c)
+        {
+            if(l.type == FragmentType.G || c.type == FragmentType.G || r.type == FragmentType.G) { return InsertG(l, c, r); }
         }
 
-        private static Fragment Insert(Fragment a, Fragment b)
+        private static Fragment InsertG(Fragment l, Fragment r, Fragment c)
+        {
+            
+        }
+
+        private static Fragment Concat(Fragment l, Fragment r, Fragment c)
         {
 
         }
-
-        private static Fragment Concat(Fragment a, Fragment b)
+        
+        private static Fragment isContact(Fragment a, Fragment b)
         {
 
         }
-
-
-
 
 
 
@@ -131,6 +145,8 @@ namespace ConsolCourse
         private enum FragmentType
         {
             NON, // пустое 
+            A, //   прилагательное
+            S, //   существительное
             IN, //  вводное слово
             I, //   инфинитив
             G, //   деепричастие
