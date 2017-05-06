@@ -21,7 +21,7 @@ namespace ConsolCourse
 
         public void startAbstract()
         {
-            MorphAnalysis.startAnalysis("C:\\Users\\DanilKolesnikov\\Desktop\\КУРСОВАЯ\\ConsolCourse\\ConsolCourse\\input1.txt", "input.txt", "output.txt");
+            MorphAnalysis.startAnalysis("C:\\Users\\DanilKolesnikov\\Desktop\\КУРСОВАЯ\\ConsolCourse\\ConsolCourse\\input.txt", "input.txt", "output.txt");
 
             Console.WriteLine("DoneMorf!");
 
@@ -29,16 +29,15 @@ namespace ConsolCourse
 
             Console.WriteLine("DoneClear!");
 
-            Abstract.startAbstract("vectors.bin", "probability.bin", 10);
+            Abstract.startAbstract("vectors.bin", "probability.bin", 20);
 
             Console.WriteLine("DoneAbstract!");
 
             FragmentAnalysis.startSegment("fragmentoutput.txt", "segments.bin");
 
-            Console.WriteLine("DoneFragment!");
+            Console.WriteLine("DoneSegment!");
 
-            FragmentAnalysis.writeSegment("fragmentoutput.txt", "segments.bin","test.txt");
-
+            FragmentAnalysis.startFragment("fragmentoutput.txt", "segments.bin", "probability.bin", "test.txt");
 
             Console.WriteLine("Done!");
             

@@ -1,6 +1,5 @@
 ﻿using System;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.IO;
 
 namespace ConsolCourse
@@ -20,37 +19,23 @@ namespace ConsolCourse
         public bool important { get; set; }
         [JsonProperty("part")]
         public PartsOfLanguage part { get; set; }
-        [JsonProperty("genders")]
-        private List <Gender> genders { get; set; }
-        [JsonProperty("counts")]
-        private List<Count> counts { get; set; }
-        [JsonProperty("dies")]
-        private List<Die> dies { get; set; }
 
         public WordModel (string word , 
                           string token, 
                           bool important, 
-                          PartsOfLanguage part, 
-                          List<Gender> genders, 
-                          List<Count> counts, 
-                          List<Die> dies){
+                          PartsOfLanguage part)
+        { 
             this.word = word;
             this.token = token;
             this.important = important;
             this.part = part;
-            this.genders = genders;
-            this.counts = counts;
-            this.dies = dies;
         }
 
         public WordModel(string word, bool important, PartsOfLanguage part) :
-            this(word, word, important, part, null, null, null){ }
-
-        public WordModel(string word, string token, bool important, PartsOfLanguage part) :
-            this(word, token, important, part, null, null, null){ }
+            this(word, word, important, part) { }
 
         public WordModel() :
-            this(String.Empty, String.Empty, false, PartsOfLanguage.NON, null, null, null)
+            this(String.Empty, String.Empty, false, PartsOfLanguage.NON)
         { }
 
         public static void startRead()
@@ -87,43 +72,9 @@ namespace ConsolCourse
     public enum PartsOfLanguage
     {
         NON, //     пустое 
-        CONJP, //   союз подчинительный 
-        CONJS, //   союз сочинительный
         G1, //      символ разделитель предложений
         G2, //      символ разделитель внутри предложений
         SPACE, //   пробел
         R1, //      100% символ разделитель предложений
-        A, //       прилагательное
-        SPRO, //    местоимение-существительное
-        S, //       существительное
-        PARENTH, // вводное слово
-        INF, //     инфинитив
-        GER, //     деепричастие
-        PARTCP, //  причастие
-        PRAED, //   прдикатив
-        BREVA, //   краткое прилагательное
-        BREVP, //   краткое причастие
-        V  //       глагол
-    }
-
-    public enum Gender
-    {
-        M, F, N
-    }
-
-    public enum Die
-    {
-        NOM, //     именительный
-        GEN, //     родительный
-        DAT, //     дательный
-        ACC, //     винительный
-        INS, //     творительный
-        ABL, //     предложный
-        VOC, //     звательный
-    }
-
-    public enum Count
-    {
-        SG, PL
     }
 }

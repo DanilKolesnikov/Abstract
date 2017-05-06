@@ -10,12 +10,10 @@ namespace ConsolCourse
         private const float eps = 0.55f;
         private const string DirectoryName = "Vectors";
         private static uint wordNumber = 0;
-        private static BorTree tree;
         private static DSU sets;
 
         public static void startClear(string input, string frgmentoutput, string output, bool isHard )
         {
-            tree = new BorTree();
             sets = new DSU();
             startEasyClear(input, frgmentoutput, output);
             if (isHard)
@@ -29,7 +27,7 @@ namespace ConsolCourse
         {
             List<WordModel> currentWords;
             uint treeNumber;
-           
+            BorTree tree = new BorTree();
             if (File.Exists(input))
             {
                 try
@@ -56,6 +54,7 @@ namespace ConsolCourse
                                     {
                                         outputStream.Write(wordNumber);
                                         outputStream.Write(currentWord.token);
+                                        Console.WriteLine(wordNumber + " - " + currentWord.token);
                                     }
                                     wordNumber++;
                                     currentWord.wordNumber = wordNumber;
@@ -70,7 +69,7 @@ namespace ConsolCourse
                     }
                 }
                 catch (AbstractException e) { throw new AbstractException(e); }
-                catch (Exception e) { Console.WriteLine(e.Message); throw new AbstractException("Ошибка отчистки текста.", AbstractExceptionKey.File); }
+                catch (Exception e) {throw new AbstractException("Ошибка отчистки текста.", AbstractExceptionKey.File); }
             }
             else
             {
@@ -143,7 +142,7 @@ namespace ConsolCourse
             List<Tuple<string, uint>>[] hashGroups = new List<Tuple<string, uint>>[1009];
             try
             {
-                using (BinaryReader reader = new BinaryReader(new FileStream(input, FileMode.Open), Encoding.UTF8))
+                using (BinaryReader reader = new BinaryReader(new FileStream(input, FileMode.Open,FileAccess.Read), Encoding.UTF8))
                 {
                     int currentHash;
                     string currentWord;

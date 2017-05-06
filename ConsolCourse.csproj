@@ -51,7 +51,6 @@
     <Compile Include="BorTree.cs" />
     <Compile Include="Convertor.cs" />
     <Compile Include="DSU.cs" />
-    <Compile Include="Fragment.cs" />
     <Compile Include="FragmentAnalysis.cs" />
     <Compile Include="Hash.cs" />
     <Compile Include="MorphAnalysis.cs" />
